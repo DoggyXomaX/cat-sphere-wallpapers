@@ -15,13 +15,54 @@
         background: #050505;
       }
 
+      * {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+      }
+
       canvas {
         display: block;
+      }
+
+      body {
+        background-image: url(./assets/background.jpg);
+      }
+
+      .before, .after {
+        display: block;
+        color: white;
+
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+
+        font-size: 144px;
+      }
+
+      .before {
+        left: 12%;
+      }
+
+      .after {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        right: 12%;
+      }
+
+      .after img {
+        display: block;
+        width: 2em;
+        height: 2em;
       }
     </style>
   </head>
 
   <body>
+    <span class="before">Even</span>
+
+    <span class="after">uses <img src="assets/arch.svg"></span>
     <script type="module" src="./script.js"></script>
   </body>
 </html>
