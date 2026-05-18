@@ -16,21 +16,19 @@ texture.repeat.set(1 / cols, 1 / rows);
 const transitionTexture = new THREE.TextureLoader().load("./assets/mixed2.webp");
 transitionTexture.colorSpace = THREE.SRGBColorSpace;
 transitionTexture.repeat.set(1 / cols, 1 / rows);
-const setFrame = (x, y) => texture.offset.set(x / cols, 1 - (y + 1) / rows);
-const setTransitionFrame = (x, y) => transitionTexture.offset.set(x / cols, 1 - (y + 1) / rows);
 
 const geometry = new THREE.SphereGeometry(1, 128, 32);
-const material = new THREE.MeshPhongMaterial({ map: texture, side: THREE.FrontSide });
-const transitionMaterial = new THREE.MeshPhongMaterial({ map: transitionTexture, side: THREE.FrontSide });
+const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide });
+const transitionMaterial = new THREE.MeshBasicMaterial({ map: transitionTexture, side: THREE.FrontSide });
 
-const archLight = new THREE.PointLight(0x2222ff, 4, 40);
-archLight.position.set(2, -0.5, 1);
-const sunLight = new THREE.PointLight(0xffaa99, 16, 40);
-sunLight.position.set(-2, 0, -2);
+// const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+// const archLight = new THREE.PointLight(0x2222ff, 4, 40);
+// archLight.position.set(2, -0.5, 1);
+// const sunLight = new THREE.PointLight(0xffaa99, 16, 40);
+// sunLight.position.set(-2, 0, -2);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 
-scene.add(ambientLight, archLight, sunLight);
+// scene.add(ambientLight, archLight, sunLight);
 
 const mainScale = 0.8;
 const sphere = new THREE.Mesh(geometry, material);
@@ -42,11 +40,6 @@ transitionSphere.scale.copy(sphere.scale);
 transitionSphere.rotation.reorder("YXZ");
 scene.add(transitionSphere);
 
-const lerp = (a, b, t) => {
-  if (t < 0) t = 0;
-  else if (t > 1) t = 1;
-  return a + (b - a) * t;
-};
 
 const DEG2RAD = Math.PI / 180;
 
@@ -68,6 +61,15 @@ let skin = 0;
 let prevSkin = 0;
 let transition = skinInterval;
 let isBlink = false;
+
+const lerp = (a, b, t) => {
+  if (t < 0) t = 0;
+  else if (t > 1) t = 1;
+  return a + (b - a) * t;
+};
+
+const setFrame = (x, y) => texture.offset.set(x / cols, 1 - (y + 1) / rows);
+const setTransitionFrame = (x, y) => transitionTexture.offset.set(x / cols, 1 - (y + 1) / rows);
 
 const updateFrame = () => {
   setFrame(isBlink ? 1 : 0, skin | 0);
