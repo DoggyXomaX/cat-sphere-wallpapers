@@ -13,16 +13,34 @@ const rows = 4;
 const texture = new THREE.TextureLoader().load("./assets/mixed2.webp");
 texture.colorSpace = THREE.SRGBColorSpace;
 texture.repeat.set(1 / cols, 1 / rows);
+const transitionTexture = new THREE.TextureLoader().load("./assets/mixed2.webp");
+transitionTexture.colorSpace = THREE.SRGBColorSpace;
+transitionTexture.repeat.set(1 / cols, 1 / rows);
 const setFrame = (x, y) => texture.offset.set(x / cols, 1 - (y + 1) / rows);
+const setTransitionFrame = (x, y) => transitionTexture.offset.set(x / cols, 1 - (y + 1) / rows);
 
 const geometry = new THREE.SphereGeometry(1, 128, 32);
-const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide });
+const material = new THREE.MeshPhongMaterial({ map: texture, side: THREE.FrontSide });
+const transitionMaterial = new THREE.MeshPhongMaterial({ map: transitionTexture, side: THREE.FrontSide });
+
+const archLight = new THREE.PointLight(0x2222ff, 4, 40);
+archLight.position.set(2, -0.5, 1);
+const sunLight = new THREE.PointLight(0xffaa99, 16, 40);
+sunLight.position.set(-2, 0, -2);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+
+scene.add(ambientLight, archLight, sunLight);
 
 const mainScale = 0.8;
 const sphere = new THREE.Mesh(geometry, material);
 sphere.scale.set(0.75 * mainScale, 0.75 * mainScale, 0.85 * mainScale);
 sphere.rotation.reorder("YXZ");
 scene.add(sphere);
+const transitionSphere = new THREE.Mesh(geometry, transitionMaterial);
+transitionSphere.scale.copy(sphere.scale);
+transitionSphere.rotation.reorder("YXZ");
+scene.add(transitionSphere);
 
 const lerp = (a, b, t) => {
   if (t < 0) t = 0;
@@ -38,25 +56,33 @@ let rotationY = 0;
 let rotationX = 0;
 let targetRotationX = 0;
 const speed = 0.02;
-const changeInterval = 5000;
+const skinInterval = 5000;
 const blinkInterval = 1500;
 const rotationXInterval = 1000;
 const rotationXSpread = 25 * DEG2RAD;
 const closeBlinkInterval = 200;
 const randomAspect = 0.6;
+const transitionInterval = 0.75;
+const transitionDistance = 4.0;
 let skin = 0;
+let prevSkin = 0;
+let transition = skinInterval;
 let isBlink = false;
 
 const updateFrame = () => {
   setFrame(isBlink ? 1 : 0, skin | 0);
+  setTransitionFrame(isBlink ? 1 : 0, prevSkin | 0);
 };
 
-const onInterval = () => {
-  window.setTimeout(onInterval, changeInterval);
+const onSkinInterval = () => {
+  window.setTimeout(onSkinInterval, skinInterval);
+  prevSkin = skin;
   skin = (skin + 1) % rows;
+  transition = 0;
   updateFrame();
 };
 
+// Changes blink frame
 const onBlinkInterval = () => {
   const interval = (1 - randomAspect + randomAspect * Math.random()) * (isBlink ? blinkInterval : closeBlinkInterval);
   window.setTimeout(onBlinkInterval, interval);
@@ -64,6 +90,7 @@ const onBlinkInterval = () => {
   updateFrame();
 };
 
+// Changes target x rotation
 const onXInterval = () => {
   const interval = (1 - randomAspect + Math.random() * randomAspect) * rotationXInterval;
   window.setTimeout(onXInterval, interval);
@@ -84,16 +111,29 @@ const animate = (time) => {
     rotationY += speed * isForward;
     if (rotationY < -Math.PI / 6) targetForward = -targetForward;
   }
+
   rotationX = lerp(rotationX, targetRotationX, deltaTime * 2);
   isForward = lerp(isForward, targetForward, deltaTime * 5);
 
   sphere.rotation.y = rotationY - Math.PI / 2;
   sphere.rotation.z = rotationX;
 
+  if (transition < transitionInterval) {
+    transition += deltaTime;
+
+    const t = transition / transitionInterval;
+    sphere.position.setY(transitionDistance * (1 - t));
+    transitionSphere.position.setY(-transitionDistance * t);
+    transitionSphere.rotation.copy(sphere.rotation);
+  } else {
+    sphere.position.setY(0);
+    transitionSphere.position.setY(-transitionDistance);
+  }
+
   renderer.render(scene, camera);
 };
 
-onInterval();
+onSkinInterval();
 onBlinkInterval();
 onXInterval();
 animate(0);
