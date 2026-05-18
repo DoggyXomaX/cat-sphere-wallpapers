@@ -1,0 +1,13 @@
+# IDE
+.vs
+.vscode
+.zed
+.idea
+
+# Artifacts
+node_modules
+.vite
+public
+
+# OS-related
+.DS_Store
