@@ -21,12 +21,8 @@ const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSi
 const mainScale = 0.8;
 const sphere = new THREE.Mesh(geometry, material);
 sphere.scale.set(0.75 * mainScale, 0.75 * mainScale, 0.85 * mainScale);
+sphere.rotation.reorder("YXZ");
 scene.add(sphere);
-
-let isForward = 0;
-let targetForward = -1;
-let rotationY = 0;
-const speed = 0.02;
 
 const lerp = (a, b, t) => {
   if (t < 0) t = 0;
@@ -34,32 +30,18 @@ const lerp = (a, b, t) => {
   return a + (b - a) * t;
 };
 
-let prevTime = 0;
-const animate = (time) => {
-  const deltaTime = (time - prevTime) / 1000;
-  prevTime = time;
+const DEG2RAD = Math.PI / 180;
 
-  if (isForward > 0) {
-    rotationY += speed * isForward;
-    if (rotationY > Math.PI / 6) targetForward = -targetForward;
-  } else {
-    rotationY += speed * isForward;
-    if (rotationY < -Math.PI / 6) targetForward = -targetForward;
-  }
-
-  isForward = lerp(isForward, targetForward, deltaTime * 2);
-
-  sphere.rotation.y = rotationY - Math.PI / 2;
-
-  renderer.render(scene, camera);
-
-  requestAnimationFrame(animate);
-};
-
-animate(0);
-
+let isForward = 0;
+let targetForward = -1;
+let rotationY = 0;
+let rotationX = 0;
+let targetRotationX = 0;
+const speed = 0.02;
 const changeInterval = 5000;
 const blinkInterval = 1500;
+const rotationXInterval = 1000;
+const rotationXSpread = 25 * DEG2RAD;
 const closeBlinkInterval = 200;
 const randomAspect = 0.6;
 let skin = 0;
@@ -76,11 +58,42 @@ const onInterval = () => {
 };
 
 const onBlinkInterval = () => {
-  const interval = isBlink ? blinkInterval : closeBlinkInterval;
-  window.setTimeout(onBlinkInterval, (1 - randomAspect + randomAspect * Math.random()) * interval);
+  const interval = (1 - randomAspect + randomAspect * Math.random()) * (isBlink ? blinkInterval : closeBlinkInterval);
+  window.setTimeout(onBlinkInterval, interval);
   isBlink = !isBlink;
   updateFrame();
 };
 
+const onXInterval = () => {
+  const interval = (1 - randomAspect + Math.random() * randomAspect) * rotationXInterval;
+  window.setTimeout(onXInterval, interval);
+  targetRotationX = Math.random() * rotationXSpread * 2 - rotationXSpread;
+};
+
+let prevTime = 0;
+const animate = (time) => {
+  window.requestAnimationFrame(animate);
+
+  const deltaTime = (time - prevTime) / 1000;
+  prevTime = time;
+
+  if (isForward > 0) {
+    rotationY += speed * isForward;
+    if (rotationY > Math.PI / 6) targetForward = -targetForward;
+  } else {
+    rotationY += speed * isForward;
+    if (rotationY < -Math.PI / 6) targetForward = -targetForward;
+  }
+  rotationX = lerp(rotationX, targetRotationX, deltaTime * 2);
+  isForward = lerp(isForward, targetForward, deltaTime * 5);
+
+  sphere.rotation.y = rotationY - Math.PI / 2;
+  sphere.rotation.z = rotationX;
+
+  renderer.render(scene, camera);
+};
+
 onInterval();
 onBlinkInterval();
+onXInterval();
+animate(0);
