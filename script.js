@@ -9,26 +9,19 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.body.appendChild(renderer.domElement);
 
 const cols = 2;
-const rows = 4;
-const texture = new THREE.TextureLoader().load("./assets/mixed2.webp");
+let rows = 1;
+const texture = new THREE.TextureLoader().load("./assets/mixed2.webp", () => {
+  rows = texture.image.naturalHeight / (texture.image.naturalWidth / cols) | 0
+  texture.repeat.set(1 / cols, 1 / rows);
+  transitionTexture.repeat.set(1 / cols, 1 / rows);
+});
 texture.colorSpace = THREE.SRGBColorSpace;
-texture.repeat.set(1 / cols, 1 / rows);
 const transitionTexture = new THREE.TextureLoader().load("./assets/mixed2.webp");
 transitionTexture.colorSpace = THREE.SRGBColorSpace;
-transitionTexture.repeat.set(1 / cols, 1 / rows);
 
-const geometry = new THREE.SphereGeometry(1, 128, 32);
-const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide });
-const transitionMaterial = new THREE.MeshBasicMaterial({ map: transitionTexture, side: THREE.FrontSide });
-
-// const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-// const archLight = new THREE.PointLight(0x2222ff, 4, 40);
-// archLight.position.set(2, -0.5, 1);
-// const sunLight = new THREE.PointLight(0xffaa99, 16, 40);
-// sunLight.position.set(-2, 0, -2);
-
-
-// scene.add(ambientLight, archLight, sunLight);
+const geometry = new THREE.SphereGeometry(1, 6, 6);
+const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide, transparent: true });
+const transitionMaterial = new THREE.MeshBasicMaterial({ map: transitionTexture, side: THREE.FrontSide, transparent: true });
 
 const mainScale = 0.8;
 const sphere = new THREE.Mesh(geometry, material);
@@ -39,7 +32,6 @@ const transitionSphere = new THREE.Mesh(geometry, transitionMaterial);
 transitionSphere.scale.copy(sphere.scale);
 transitionSphere.rotation.reorder("YXZ");
 scene.add(transitionSphere);
-
 
 const DEG2RAD = Math.PI / 180;
 
