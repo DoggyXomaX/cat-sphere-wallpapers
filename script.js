@@ -1,5 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.118.3/build/three.module.js";
 import { lerp } from './utils.js';
+import { createGeometry, createCamera, createMaterial, createRenderer, createScene, createSphere } from './factory.js';
 
 const DEG2RAD = Math.PI / 180;
 
@@ -19,7 +20,6 @@ const World = {
 const State = {
   columns: 2,
   rows: 1,
-  mainScale: 0.8,
   skinInterval: 5000,
   blinkInterval: 1500,
   rotationXInterval: 1000,
@@ -42,51 +42,14 @@ const State = {
   transition: 0,
 };
 
-function createMaterial(texture) {
-  texture.repeat.set(1 / State.columns, 1 / State.rows);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.needsUpdate = true;
-  return new THREE.MeshBasicMaterial({ map: texture, side: THREE.FrontSide, transparent: false });
-}
-
-function createSphere(geometry, material) {
-  const sphere = new THREE.Mesh(geometry, material);
-  sphere.scale.set(0.75 * State.mainScale, 0.75 * State.mainScale, 0.85 * State.mainScale);
-  sphere.rotation.reorder('YXZ');
-  return sphere;
-}
-
-function createCamera() {
-  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.z = 3;
-  return camera;
-}
-
-function createRenderer() {
-  const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
-  return renderer;
-}
-
-function createGeometry() {
-  return new THREE.SphereGeometry(1, 6, 6);
-}
-
-function createScene(...children) {
-  const scene = new THREE.Scene();
-  children.forEach((child) => scene.add(child));
-  return scene;
-}
-
 function init(texture) {
   State.transition = State.transitionInterval;
   State.rows = texture.image.naturalHeight / (texture.image.naturalWidth / State.columns) | 0;
 
   World.texture = texture;
   World.transitionTexture = texture.clone();
-  World.material = createMaterial(World.texture);
-  World.transitionMaterial = createMaterial(World.transitionTexture);
+  World.material = createMaterial(World.texture, State.columns, State.rows);
+  World.transitionMaterial = createMaterial(World.transitionTexture, State.columns, State.rows);
   World.geometry = createGeometry();
   World.sphere = createSphere(World.geometry, World.material);
   World.transitionSphere = createSphere(World.geometry, World.transitionMaterial);
