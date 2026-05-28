@@ -43,6 +43,9 @@ const State = {
 };
 
 function init(texture) {
+  texture.minFilter = THREE.NearestFilter;
+  texture.magFilter = THREE.NearestFilter;
+
   State.transition = State.transitionInterval;
   State.rows = texture.image.naturalHeight / (texture.image.naturalWidth / State.columns) | 0;
 

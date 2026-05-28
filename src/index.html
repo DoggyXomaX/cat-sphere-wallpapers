@@ -47,28 +47,29 @@
 
       .after {
         display: flex;
+        align-items: center;
         flex-direction: column;
         gap: 30px;
-        right: 12%;
+        right: 2%;
       }
 
       .after img {
         display: block;
-        width: 2em;
-        height: 2em;
+        width: 4em;
+        height: 4em;
 
         animation: archAnimation 2s linear infinite;
       }
 
       @keyframes archAnimation {
         0% {
-          filter: drop-shadow(0 0 0 #2222ff20);
+          filter: drop-shadow(0 0 0 #22ff2220);
         }
         50% {
-          filter: drop-shadow(0 0 64px #2222ffff);
+          filter: drop-shadow(0 0 64px #22ff2280);
         }
         100% {
-          filter: drop-shadow(0 0 0 #2222ff20);
+          filter: drop-shadow(0 0 0 #22ff2220);
         }
       }
     </style>
@@ -77,7 +78,7 @@
   <body>
     <span class="before">Even</span>
 
-    <span class="after">uses <img src="assets/arch.svg" /></span>
+    <span class="after">touches <img src="assets/grasstotouch.webp" /></span>
     <script type="module" src="./script.js"></script>
   </body>
 </html>
