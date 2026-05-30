@@ -8,6 +8,7 @@
 node_modules
 .vite
 public
+dist
 
 # OS-related
 .DS_Store

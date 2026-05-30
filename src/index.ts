@@ -1,21 +1,22 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.118.3/build/three.module.js";
-import { lerp } from './utils.js';
-import { createGeometry, createCamera, createMaterial, createRenderer, createScene, createSphere } from './factory.js';
+import { BufferGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Texture, WebGLRenderer } from 'three';
+import { lerp } from './utils';
+import { createGeometry, createCamera, createMaterial, createRenderer, createScene, createSphere, loadTextureAtlas } from './factory';
+import mixedUrl from './assets/mixed2.webp';
 
 const DEG2RAD = Math.PI / 180;
 
-const World = {
-  scene: null,
-  geometry: null,
-  renderer: null,
-  camera: null,
-  texture: null,
-  transitionTexture: null,
-  material: null,
-  transitionMaterial: null,
-  sphere: null,
-  transitionSphere: null,
-};
+const World: {
+  scene?: Scene;
+  texture?: Texture;
+  transitionTexture?: Texture;
+  material?: MeshBasicMaterial;
+  transitionMaterial?: MeshBasicMaterial;
+  geometry?: BufferGeometry;
+  sphere?: Mesh;
+  transitionSphere?: Mesh;
+  camera?: PerspectiveCamera;
+  renderer?: WebGLRenderer;
+} = {};
 
 const State = {
   columns: 2,
@@ -42,10 +43,12 @@ const State = {
   transition: 0,
 };
 
-function init(texture) {
-  texture.minFilter = THREE.NearestFilter;
-  texture.magFilter = THREE.NearestFilter;
-
+function init(texture: Texture<HTMLImageElement> | undefined) {
+  if (!texture) {
+    console.error('Failed to load texture!');
+    return;
+  }
+  
   State.transition = State.transitionInterval;
   State.rows = texture.image.naturalHeight / (texture.image.naturalWidth / State.columns) | 0;
 
@@ -67,7 +70,7 @@ function init(texture) {
   window.addEventListener('resize', onResize);
 }
 
-function update(time) {
+function update(time: number) {
   window.requestAnimationFrame(update);
 
   const deltaTime = (time - State.prevTime) / 1000;
@@ -84,38 +87,38 @@ function update(time) {
   State.rotationX = lerp(State.rotationX, State.targetRotationX, deltaTime * 2);
   State.isForward = lerp(State.isForward, State.targetForward, deltaTime * 5);
 
-  World.sphere.rotation.y = State.rotationY - Math.PI / 2;
-  World.sphere.rotation.z = State.rotationX;
+  World.sphere!.rotation.y = State.rotationY - Math.PI / 2;
+  World.sphere!.rotation.z = State.rotationX;
 
   if (State.transition < State.transitionInterval) {
     console.log('transition!');
     State.transition += deltaTime;
 
     const t = State.transition / State.transitionInterval;
-    World.sphere.position.setY(State.transitionDistance * (1 - t));
-    World.transitionSphere.position.setY(-State.transitionDistance * t);
-    World.transitionSphere.rotation.copy(World.sphere.rotation);
+    World.sphere!.position.setY(State.transitionDistance * (1 - t));
+    World.transitionSphere!.position.setY(-State.transitionDistance * t);
+    World.transitionSphere!.rotation.copy(World.sphere!.rotation);
   } else {
-    World.sphere.position.setY(0);
-    World.transitionSphere.position.setY(-State.transitionDistance);
+    World.sphere!.position.setY(0);
+    World.transitionSphere!.position.setY(-State.transitionDistance);
   }
 
-  World.renderer.render(World.scene, World.camera);
+  World.renderer!.render(World.scene!, World.camera!);
 }
 
 function onResize() {
-  World.renderer.setSize(window.innerWidth, window.innerHeight);
-  World.camera.aspect = window.innerWidth / window.innerHeight;
-  World.camera.updateProjectionMatrix();
+  World.renderer!.setSize(window.innerWidth, window.innerHeight);
+  World.camera!.aspect = window.innerWidth / window.innerHeight;
+  World.camera!.updateProjectionMatrix();
 }
 
-function setFrame(texture, x, y) {
+function setFrame(texture: Texture, x: number, y: number) {
   texture.offset.set(x / State.columns, 1 - (y + 1) / State.rows);
 }
 
 function updateSphereTextures() {
-  setFrame(World.texture, State.isBlink ? 1 : 0, State.skin | 0);
-  setFrame(World.transitionTexture, State.isBlink ? 1 : 0, State.prevSkin | 0);
+  setFrame(World.texture!, State.isBlink ? 1 : 0, State.skin | 0);
+  setFrame(World.transitionTexture!, State.isBlink ? 1 : 0, State.prevSkin | 0);
 }
 
 function onSkinUpdate() {
@@ -139,4 +142,4 @@ function onXUpdate() {
   State.targetRotationX = Math.random() * State.rotationXSpread * 2 - State.rotationXSpread;
 }
 
-new THREE.TextureLoader().load("./assets/mixed2.webp", init);
+loadTextureAtlas(mixedUrl).then(init);

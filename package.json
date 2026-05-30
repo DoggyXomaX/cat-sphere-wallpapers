@@ -1,5 +1,15 @@
 {
+  "name": "sphere",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/three": "^0.184.1",
+    "vite": "^8.0.14"
+  },
+  "dependencies": {
+    "three": "^0.184.0"
+  },
   "scripts": {
-    "dev": "bunx vite"
+    "dev": "bunx vite",
+    "build": "bunx vite build"
   }
 }
