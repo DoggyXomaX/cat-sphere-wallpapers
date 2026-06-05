@@ -1,4 +1,14 @@
-import { BufferGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Texture, WebGLRenderer } from "three";
+import {
+  BufferGeometry,
+  Material,
+  Mesh,
+  MeshBasicMaterial,
+  PerspectiveCamera,
+  RawShaderMaterial,
+  Scene,
+  Texture,
+  WebGLRenderer,
+} from "three";
 import { lerp } from "./utils";
 import {
   createGeometry,
@@ -19,8 +29,8 @@ const World: {
   scene?: Scene;
   texture?: Texture;
   transitionTexture?: Texture;
-  material?: MeshBasicMaterial;
-  transitionMaterial?: MeshBasicMaterial;
+  material?: Material;
+  transitionMaterial?: Material;
   geometry?: BufferGeometry;
   sphere?: Mesh;
   transitionSphere?: Mesh;
@@ -104,7 +114,6 @@ function update(time: number) {
   World.sphere!.rotation.z = State.rotationX;
 
   if (State.transition < State.transitionInterval) {
-    console.log("transition!");
     State.transition += deltaTime;
 
     const t = State.transition / State.transitionInterval;
@@ -125,13 +134,14 @@ function onResize() {
   World.camera!.updateProjectionMatrix();
 }
 
-function setFrame(texture: Texture, x: number, y: number) {
+function setFrame(material: Material, texture: Texture, x: number, y: number) {
   texture.offset.set(x / State.columns, 1 - (y + 1) / State.rows);
+  texture.updateMatrix();
 }
 
 function updateSphereTextures() {
-  setFrame(World.texture!, State.isBlink ? 1 : 0, State.skin | 0);
-  setFrame(World.transitionTexture!, State.isBlink ? 1 : 0, State.prevSkin | 0);
+  setFrame(World.material!, World.texture!, State.isBlink ? 1 : 0, State.skin | 0);
+  setFrame(World.transitionMaterial!, World.transitionTexture!, State.isBlink ? 1 : 0, State.prevSkin | 0);
 }
 
 function onSkinUpdate() {

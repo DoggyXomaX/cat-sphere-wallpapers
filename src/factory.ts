@@ -13,13 +13,38 @@ import {
   Object3D,
   BufferGeometry,
   Material,
+  RawShaderMaterial,
 } from "three";
 
 export function createMaterial(texture: Texture, columns: number, rows: number) {
   texture.repeat.set(1 / columns, 1 / rows);
   texture.colorSpace = SRGBColorSpace;
   texture.needsUpdate = true;
-  return new MeshBasicMaterial({ map: texture, side: FrontSide, transparent: true });
+
+  return new RawShaderMaterial({
+    uniforms: { map: { value: texture }, mapTransform: { value: texture.matrix } },
+    vertexShader: `
+      precision lowp float;
+      attribute vec3 position;
+      attribute vec2 uv;
+      uniform mat4 modelViewMatrix;
+      uniform mat4 projectionMatrix;
+      uniform mat3 mapTransform;
+      varying vec2 vUv;
+      void main() {
+        vUv = (mapTransform * vec3(uv, 1.0)).xy;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      precision lowp float;
+      uniform sampler2D map;
+      varying vec2 vUv;
+      void main() {
+        gl_FragColor = texture2D(map, vUv);
+      }
+    `,
+  });
 }
 
 export function createSphere(geometry: BufferGeometry, material: Material) {
