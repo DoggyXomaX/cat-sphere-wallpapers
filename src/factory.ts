@@ -13,7 +13,7 @@ import {
   Object3D,
   BufferGeometry,
   Material,
-} from 'three';
+} from "three";
 
 export function createMaterial(texture: Texture, columns: number, rows: number) {
   texture.repeat.set(1 / columns, 1 / rows);
@@ -25,7 +25,7 @@ export function createMaterial(texture: Texture, columns: number, rows: number) 
 export function createSphere(geometry: BufferGeometry, material: Material) {
   const sphere = new Mesh(geometry, material);
   sphere.scale.set(0.6, 0.6, 0.7);
-  sphere.rotation.reorder('YXZ');
+  sphere.rotation.reorder("YXZ");
   return sphere;
 }
 
@@ -36,7 +36,7 @@ export function createCamera() {
 }
 
 export function createRenderer() {
-  const renderer = new WebGLRenderer({ antialias: false, alpha: true });
+  const renderer = new WebGLRenderer({ antialias: false });
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
   return renderer;
@@ -46,19 +46,26 @@ export function createGeometry() {
   return new SphereGeometry(1, 6, 6);
 }
 
-export function createScene(...children: Object3D[]) {
+export function createScene(backgroundTexture: Texture | undefined, children?: Object3D[]) {
   const scene = new Scene();
-  children.forEach((child) => scene.add(child));
+  if (backgroundTexture) scene.background = backgroundTexture;
+  children?.forEach((child) => scene.add(child));
   return scene;
 }
 
-export function loadTextureAtlas(url: string): Promise<Texture<HTMLImageElement> | undefined> {
+export function loadTexture(url: string): Promise<Texture<HTMLImageElement> | undefined> {
   const textureLoader = new TextureLoader();
   return new Promise((resolve) => {
-    textureLoader.load(url, (texture) => {
-      texture.minFilter = NearestFilter;
-      texture.magFilter = NearestFilter;
-      resolve(texture);
-    }, undefined, () => resolve(undefined));
+    textureLoader.load(
+      url,
+      (texture) => {
+        texture.minFilter = NearestFilter;
+        texture.magFilter = NearestFilter;
+        texture.colorSpace = SRGBColorSpace;
+        resolve(texture);
+      },
+      undefined,
+      () => resolve(undefined),
+    );
   });
 }

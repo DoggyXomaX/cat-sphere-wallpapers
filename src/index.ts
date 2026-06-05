@@ -1,7 +1,17 @@
-import { BufferGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Texture, WebGLRenderer } from 'three';
-import { lerp } from './utils';
-import { createGeometry, createCamera, createMaterial, createRenderer, createScene, createSphere, loadTextureAtlas } from './factory';
-import mixedUrl from './assets/mixed2.webp';
+import { BufferGeometry, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Texture, WebGLRenderer } from "three";
+import { lerp } from "./utils";
+import {
+  createGeometry,
+  createCamera,
+  createMaterial,
+  createRenderer,
+  createScene,
+  createSphere,
+  loadTexture,
+} from "./factory";
+
+import mixedUrl from "./assets/mixed2.webp";
+import backgroundUrl from "./assets/background.jpg";
 
 const DEG2RAD = Math.PI / 180;
 
@@ -29,7 +39,7 @@ const State = {
   randomAspect: 0.6,
   transitionInterval: 0.75,
   transitionDistance: 4.0,
-  
+
   prevTime: 0,
   isForward: 0,
   targetForward: -1,
@@ -43,14 +53,17 @@ const State = {
   transition: 0,
 };
 
-function init(texture: Texture<HTMLImageElement> | undefined) {
+function init(
+  texture: Texture<HTMLImageElement> | undefined,
+  backgroundTexture: Texture<HTMLImageElement> | undefined,
+) {
   if (!texture) {
-    console.error('Failed to load texture!');
+    console.error("Failed to load texture!");
     return;
   }
-  
+
   State.transition = State.transitionInterval;
-  State.rows = texture.image.naturalHeight / (texture.image.naturalWidth / State.columns) | 0;
+  State.rows = (texture.image.naturalHeight / (texture.image.naturalWidth / State.columns)) | 0;
 
   World.texture = texture;
   World.transitionTexture = texture.clone();
@@ -61,13 +74,13 @@ function init(texture: Texture<HTMLImageElement> | undefined) {
   World.transitionSphere = createSphere(World.geometry, World.transitionMaterial);
   World.camera = createCamera();
   World.renderer = createRenderer();
-  World.scene = createScene(World.sphere, World.transitionSphere);
+  World.scene = createScene(backgroundTexture, [World.sphere, World.transitionSphere]);
 
   update(0);
   onSkinUpdate();
   onBlinkUpdate();
   onXUpdate();
-  window.addEventListener('resize', onResize);
+  window.addEventListener("resize", onResize);
 }
 
 function update(time: number) {
@@ -91,7 +104,7 @@ function update(time: number) {
   World.sphere!.rotation.z = State.rotationX;
 
   if (State.transition < State.transitionInterval) {
-    console.log('transition!');
+    console.log("transition!");
     State.transition += deltaTime;
 
     const t = State.transition / State.transitionInterval;
@@ -130,7 +143,9 @@ function onSkinUpdate() {
 }
 
 function onBlinkUpdate() {
-  const interval = (1 - State.randomAspect + State.randomAspect * Math.random()) * (State.isBlink ? State.blinkInterval : State.closeBlinkInterval);
+  const interval =
+    (1 - State.randomAspect + State.randomAspect * Math.random()) *
+    (State.isBlink ? State.blinkInterval : State.closeBlinkInterval);
   window.setTimeout(onBlinkUpdate, interval);
   State.isBlink = !State.isBlink;
   updateSphereTextures();
@@ -142,4 +157,4 @@ function onXUpdate() {
   State.targetRotationX = Math.random() * State.rotationXSpread * 2 - State.rotationXSpread;
 }
 
-loadTextureAtlas(mixedUrl).then(init);
+Promise.all([loadTexture(mixedUrl), loadTexture(backgroundUrl)]).then(([a, b]) => init(a, b));
