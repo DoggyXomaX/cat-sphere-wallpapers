@@ -13,17 +13,18 @@ body {
   font-family: sans-serif;
 }
 
-canvas {
+.canvas3D,
+.canvas2D {
   display: block;
   position: absolute;
   left: 0;
   top: 0;
-}
-
-.background {
-  display: block;
   width: 100%;
   height: 100%;
+  image-rendering: pixelated;
+}
+
+.canvas2D {
 }
 
 .before,
@@ -55,18 +56,4 @@ canvas {
   display: block;
   width: 4em;
   height: 4em;
-
-  animation: archAnimation 2s linear infinite;
-}
-
-@keyframes archAnimation {
-  0% {
-    filter: drop-shadow(0 0 0 #22ff2220);
-  }
-  50% {
-    filter: drop-shadow(0 0 64px #22ff2280);
-  }
-  100% {
-    filter: drop-shadow(0 0 0 #22ff2220);
-  }
 }

@@ -1,14 +1,4 @@
-import {
-  BufferGeometry,
-  Material,
-  Mesh,
-  MeshBasicMaterial,
-  PerspectiveCamera,
-  RawShaderMaterial,
-  Scene,
-  Texture,
-  WebGLRenderer,
-} from "three";
+import { BufferGeometry, Material, Mesh, PerspectiveCamera, Scene, Texture, WebGLRenderer } from "three";
 import { lerp } from "./utils";
 import {
   createGeometry,
@@ -18,7 +8,9 @@ import {
   createScene,
   createSphere,
   loadTexture,
-} from "./factory";
+} from "./factory3D";
+import { create2DCanvas, onResize2D } from "./factory2D";
+import { RENDER_SIZE } from "./defaults";
 
 import mixedUrl from "./assets/mixed2.webp";
 import backgroundUrl from "./assets/background.jpg";
@@ -91,6 +83,9 @@ function init(
   onBlinkUpdate();
   onXUpdate();
   window.addEventListener("resize", onResize);
+
+  create2DCanvas();
+  window.addEventListener("resize", onResize2D);
 }
 
 function update(time: number) {
@@ -129,19 +124,27 @@ function update(time: number) {
 }
 
 function onResize() {
-  World.renderer!.setSize(window.innerWidth, window.innerHeight);
-  World.camera!.aspect = window.innerWidth / window.innerHeight;
+  const aspect = window.innerWidth / window.innerHeight;
+
+  let width = RENDER_SIZE;
+  let height = RENDER_SIZE / aspect;
+  if (aspect < 1) {
+    width = RENDER_SIZE * aspect;
+    height = RENDER_SIZE;
+  }
+  World.renderer!.setViewport(0, 0, width, height);
+  World.camera!.aspect = aspect;
   World.camera!.updateProjectionMatrix();
 }
 
-function setFrame(material: Material, texture: Texture, x: number, y: number) {
+function setFrame(texture: Texture, x: number, y: number) {
   texture.offset.set(x / State.columns, 1 - (y + 1) / State.rows);
   texture.updateMatrix();
 }
 
 function updateSphereTextures() {
-  setFrame(World.material!, World.texture!, State.isBlink ? 1 : 0, State.skin | 0);
-  setFrame(World.transitionMaterial!, World.transitionTexture!, State.isBlink ? 1 : 0, State.prevSkin | 0);
+  setFrame(World.texture!, State.isBlink ? 1 : 0, State.skin | 0);
+  setFrame(World.transitionTexture!, State.isBlink ? 1 : 0, State.prevSkin | 0);
 }
 
 function onSkinUpdate() {

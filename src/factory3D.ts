@@ -1,7 +1,6 @@
 import {
   SRGBColorSpace,
   NearestFilter,
-  MeshBasicMaterial,
   FrontSide,
   Mesh,
   PerspectiveCamera,
@@ -16,6 +15,8 @@ import {
   RawShaderMaterial,
 } from "three";
 
+import { RENDER_SIZE } from "./defaults";
+
 export function createMaterial(texture: Texture, columns: number, rows: number) {
   texture.repeat.set(1 / columns, 1 / rows);
   texture.colorSpace = SRGBColorSpace;
@@ -23,6 +24,7 @@ export function createMaterial(texture: Texture, columns: number, rows: number) 
 
   return new RawShaderMaterial({
     uniforms: { map: { value: texture }, mapTransform: { value: texture.matrix } },
+    side: FrontSide,
     vertexShader: `
       precision lowp float;
       attribute vec3 position;
@@ -62,7 +64,7 @@ export function createCamera() {
 
 export function createRenderer() {
   const renderer = new WebGLRenderer({ antialias: false });
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.domElement.className = "canvas3D";
   document.body.appendChild(renderer.domElement);
   return renderer;
 }
