@@ -9,7 +9,6 @@ import {
   createSphere,
   loadTexture,
 } from "./factory3D";
-import { create2DCanvas, onResize2D } from "./factory2D";
 import { RENDER_SIZE } from "./defaults";
 
 import mixedUrl from "./assets/mixed2.webp";
@@ -83,9 +82,6 @@ function init(
   onBlinkUpdate();
   onXUpdate();
   window.addEventListener("resize", onResize);
-
-  create2DCanvas();
-  window.addEventListener("resize", onResize2D);
 }
 
 function update(time: number) {
