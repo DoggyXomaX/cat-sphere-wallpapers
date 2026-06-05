@@ -58,7 +58,7 @@ export function createSphere(geometry: BufferGeometry, material: Material) {
 
 export function createCamera() {
   const camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.z = 3;
+  camera.position.z = 2;
   return camera;
 }
 

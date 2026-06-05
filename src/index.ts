@@ -15,6 +15,8 @@ import mixedUrl from "./assets/mixed2.webp";
 import backgroundUrl from "./assets/background.jpg";
 
 const DEG2RAD = Math.PI / 180;
+const FPS = 24;
+const DELTA_TIME = 1 / FPS;
 
 const World: {
   scene?: Scene;
@@ -36,15 +38,14 @@ const State = {
   blinkInterval: 1500,
   rotationXInterval: 1000,
   rotationXSpread: 25 * DEG2RAD,
+  rotationYSpread: 45 * DEG2RAD,
   closeBlinkInterval: 200,
   randomAspect: 0.6,
   transitionInterval: 0.75,
   transitionDistance: 4.0,
 
-  prevTime: 0,
-  isForward: 0,
-  targetForward: -1,
   targetRotationX: 0,
+  targetRotationY: 0,
   rotationY: 0,
   rotationX: 0,
   speed: 0.02,
@@ -77,37 +78,27 @@ function init(
   World.renderer = createRenderer();
   World.scene = createScene(backgroundTexture, [World.sphere, World.transitionSphere]);
 
-  update(0);
+  update();
   onSkinUpdate();
   onBlinkUpdate();
   onXUpdate();
   window.addEventListener("resize", onResize);
+  onResize();
 }
 
-function update(time: number) {
-  window.requestAnimationFrame(update);
+function update() {
+  window.setTimeout(update, DELTA_TIME * 1000);
 
-  const deltaTime = (time - State.prevTime) / 1000;
-  State.prevTime = time;
-
-  if (State.isForward > 0) {
-    State.rotationY += State.speed * State.isForward;
-    if (State.rotationY > Math.PI / 6) State.targetForward = -State.targetForward;
-  } else {
-    State.rotationY += State.speed * State.isForward;
-    if (State.rotationY < -Math.PI / 6) State.targetForward = -State.targetForward;
-  }
-
-  State.rotationX = lerp(State.rotationX, State.targetRotationX, deltaTime * 2);
-  State.isForward = lerp(State.isForward, State.targetForward, deltaTime * 5);
+  State.rotationX = lerp(State.rotationX, State.targetRotationX, DELTA_TIME * 2);
+  State.rotationY = lerp(State.rotationY, State.targetRotationY, DELTA_TIME * 2);
 
   World.sphere!.rotation.y = State.rotationY - Math.PI / 2;
   World.sphere!.rotation.z = State.rotationX;
 
   if (State.transition < State.transitionInterval) {
-    State.transition += deltaTime;
+    State.transition += DELTA_TIME;
 
-    const t = State.transition / State.transitionInterval;
+    const t = Math.min(1, State.transition / State.transitionInterval);
     World.sphere!.position.setY(State.transitionDistance * (1 - t));
     World.transitionSphere!.position.setY(-State.transitionDistance * t);
     World.transitionSphere!.rotation.copy(World.sphere!.rotation);
@@ -128,6 +119,7 @@ function onResize() {
     width = RENDER_SIZE * aspect;
     height = RENDER_SIZE;
   }
+  World.renderer!.setSize(width, height);
   World.renderer!.setViewport(0, 0, width, height);
   World.camera!.aspect = aspect;
   World.camera!.updateProjectionMatrix();
@@ -164,6 +156,7 @@ function onXUpdate() {
   const interval = (1 - State.randomAspect + Math.random() * State.randomAspect) * State.rotationXInterval;
   window.setTimeout(onXUpdate, interval);
   State.targetRotationX = Math.random() * State.rotationXSpread * 2 - State.rotationXSpread;
+  State.targetRotationY = Math.random() * State.rotationYSpread * 2 - State.rotationYSpread;
 }
 
 Promise.all([loadTexture(mixedUrl), loadTexture(backgroundUrl)]).then(([a, b]) => init(a, b));
